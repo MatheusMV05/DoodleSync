@@ -1,11 +1,13 @@
 import React from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { motion } from "framer-motion";
 import { User, Settings as SettingsIcon, LogOut, Shield, Palette, Bell } from "lucide-react";
 import { Button } from "../components/ui/Button";
 
 export const Settings: React.FC = () => {
     const { currentUser, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
 
     const sections = [
         {
@@ -44,7 +46,15 @@ export const Settings: React.FC = () => {
                             <p className="text-sm text-gray-400">Customize your interface</p>
                         </div>
                         <div className="flex gap-2">
-                            <div className="px-3 py-1 rounded-full bg-violet-600 text-white text-sm">Dark</div>
+                            <button
+                                onClick={toggleTheme}
+                                className={`px-3 py-1 rounded-full text-sm transition-colors ${theme === 'dark'
+                                        ? 'bg-violet-600 text-white'
+                                        : 'bg-gray-200 text-gray-800'
+                                    }`}
+                            >
+                                {theme === 'dark' ? 'Dark' : 'Light'}
+                            </button>
                         </div>
                     </div>
                 </div>

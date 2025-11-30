@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Plus, Search, MoreVertical, Clock, File, Star, Trash2, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/Button";
+import { Breadcrumbs } from "../components/ui/Breadcrumbs";
 
 interface DashboardProps {
     view?: "recent" | "all" | "favorites" | "trash" | "folder";
@@ -180,6 +181,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
         return date.toLocaleDateString();
     };
 
+    const getBreadcrumbItems = () => {
+        const items = [];
+        // Capitalize view name
+        const label = view.charAt(0).toUpperCase() + view.slice(1);
+        items.push({ label });
+        return items;
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -193,15 +202,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
             {/* Header */}
             <div className="flex flex-col gap-4">
                 {/* Breadcrumbs */}
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate('/dashboard')}>Home</span>
-                    <span>/</span>
-                    <span className="text-white font-medium capitalize">{view}</span>
-                </div>
+                <Breadcrumbs items={getBreadcrumbItems()} />
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-white mb-1">{getTitle()}</h1>
+                        <h1 className="text-3xl font-bold text-foreground mb-1">{getTitle()}</h1>
                         <p className="text-gray-400">{getDescription()}</p>
                     </div>
                     {view !== "trash" && (
@@ -220,7 +225,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
                     placeholder="Search drawings..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 w-full"
+                    className="bg-transparent border-none focus:ring-0 text-foreground placeholder-gray-500 w-full"
                 />
             </div>
 
@@ -254,7 +259,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
                             <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
-                                        <h3 className="font-medium text-white truncate pr-2">{drawing.name}</h3>
+                                        <h3 className="font-medium text-foreground truncate pr-2">{drawing.name}</h3>
                                         <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
                                             <Clock size={12} />
                                             <span>{formatRelativeTime(drawing.lastUpdated)}</span>
@@ -267,7 +272,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
                                                 e.stopPropagation();
                                                 setActiveMenu(activeMenu === drawing.id ? null : drawing.id);
                                             }}
-                                            className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100 data-[active=true]:opacity-100"
+                                            className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-foreground transition-colors opacity-0 group-hover:opacity-100 data-[active=true]:opacity-100"
                                             data-active={activeMenu === drawing.id}
                                         >
                                             <MoreVertical size={16} />
@@ -280,7 +285,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
                                                     <>
                                                         <button
                                                             onClick={(e) => toggleTrash(e, drawing.id, true)}
-                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-foreground transition-colors"
                                                         >
                                                             <RotateCcw size={16} />
                                                             Restore
@@ -297,7 +302,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
                                                     <>
                                                         <button
                                                             onClick={(e) => toggleFavorite(e, drawing.id, drawing.isFavorite)}
-                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-foreground transition-colors"
                                                         >
                                                             <Star size={16} className={drawing.isFavorite ? "fill-yellow-400 text-yellow-400" : ""} />
                                                             {drawing.isFavorite ? "Remove from Favorites" : "Add to Favorites"}
@@ -328,7 +333,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
                                 view === "favorites" ? <Star size={32} className="text-gray-600" /> :
                                     <File size={32} className="text-gray-600" />}
                         </div>
-                        <h3 className="text-lg font-medium text-white mb-1">
+                        <h3 className="text-lg font-medium text-foreground mb-1">
                             {view === "trash" ? "Trash is empty" :
                                 view === "favorites" ? "No favorites yet" :
                                     "No drawings found"}

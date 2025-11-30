@@ -1,13 +1,39 @@
 @import "tailwindcss";
 
+:root {
+    --background: #f9fafb;
+    --surface: #ffffff;
+    --surface-hover: #f3f4f6;
+    --primary: #7c3aed;
+    --primary-hover: #6d28d9;
+    --secondary: #3b82f6;
+    --accent: #8b5cf6;
+    --foreground: #111827;
+    --border: #e5e7eb;
+}
+
+.dark {
+    --background: #0a0a0f;
+    --surface: #13131f;
+    --surface-hover: #1c1c2e;
+    --primary: #7c3aed;
+    --primary-hover: #6d28d9;
+    --secondary: #3b82f6;
+    --accent: #8b5cf6;
+    --foreground: #ffffff;
+    --border: rgba(255, 255, 255, 0.1);
+}
+
 @theme {
-    --color-background: #0a0a0f;
-    --color-surface: #13131f;
-    --color-surface-hover: #1c1c2e;
-    --color-primary: #7c3aed;
-    --color-primary-hover: #6d28d9;
-    --color-secondary: #3b82f6;
-    --color-accent: #8b5cf6;
+    --color-background: var(--background);
+    --color-surface: var(--surface);
+    --color-surface-hover: var(--surface-hover);
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-secondary: var(--secondary);
+    --color-accent: var(--accent);
+    --color-foreground: var(--foreground);
+    --color-border: var(--border);
 
     --font-sans: 'Inter', system-ui, sans-serif;
 }
@@ -25,17 +51,17 @@
     }
 
     body {
-        @apply bg-background text-white antialiased;
+        @apply bg-background text-foreground antialiased;
         font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     }
 }
 
 .glass-panel {
-    @apply bg-surface/60 backdrop-blur-xl border border-white/10;
+    @apply bg-surface/60 backdrop-blur-xl border border-border;
 }
 
 .glass-button {
-    @apply bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300;
+    @apply bg-surface hover:bg-surface-hover border border-border transition-all duration-300;
 }
 
 .gradient-text {

@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { ArrowLeft, Share2, MessageSquare, Cloud } from "lucide-react";
 import { SocialSidebar } from "../components/SocialSidebar";
 import { Button } from "../components/ui/Button";
@@ -14,6 +15,7 @@ import { Excalidraw, MainMenu, WelcomeScreen } from "@excalidraw/excalidraw";
 export const Editor: React.FC = () => {
     const { fileId } = useParams<{ fileId: string }>();
     const { currentUser } = useAuth();
+    const { theme } = useTheme();
     const navigate = useNavigate();
     const [title, setTitle] = useState("Untitled");
     const [loading, setLoading] = useState(true);
@@ -179,7 +181,7 @@ export const Editor: React.FC = () => {
                 */}
                 <div className="absolute inset-0">
                     <Excalidraw
-                        theme="dark"
+                        theme={theme}
                         initialData={initialData}
                         onChange={handleOnChange}
                         UIOptions={{

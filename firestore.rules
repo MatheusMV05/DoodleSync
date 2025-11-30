@@ -16,6 +16,32 @@ service cloud.firestore {
     // Users can read and write only their own profile
     match /users/{userId} {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
+
+      // Friends subcollection
+      // Allow user to manage their own friends list
+      // Also allow a user to add themselves to another user's friend list (for accepting requests)
+      match /friends/{friendId} {
+        allow read: if isAuthenticated() && request.auth.uid == userId;
+        allow write: if isAuthenticated() && (request.auth.uid == userId || request.auth.uid == friendId);
+      }
+    }
+
+    // Friend Requests collection
+    match /friend_requests/{requestId} {
+      // Allow reading if user is sender or receiver
+      allow read: if isAuthenticated() && (
+        resource.data.from == request.auth.uid || 
+        resource.data.to == request.auth.uid
+      );
+      
+      // Allow creating a request if user is the sender
+      allow create: if isAuthenticated() && request.resource.data.from == request.auth.uid;
+      
+      // Allow updating/deleting if user is sender or receiver (to accept/reject/cancel)
+      allow update, delete: if isAuthenticated() && (
+        resource.data.from == request.auth.uid || 
+        resource.data.to == request.auth.uid
+      );
     }
 
     // Folders collection
@@ -67,6 +93,52 @@ service cloud.firestore {
 
       // DELETE: Only owner can delete
       allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        // Allow read if user has read access to the parent drawing
+        // Note: We duplicate the read logic here because 'get()' on parent is expensive/complex in rules.
+        // For simplicity in this iteration, we assume if you can read the drawing, you can read messages.
+        // Ideally, we should check parent permissions.
+        // A common pattern is to rely on the parent's security or check it via get().
+        // Since we can't easily reference the parent's 'resource' here without get(), 
+        // and get() costs money, we might rely on the fact that the client only queries messages if they have access.
+        // BUT for security, we MUST check.
+        // Let's use a simplified check: if the user is authenticated, they can read messages? No, that's too open.
+        // We will use get() to check parent drawing access.
+        
+        function canReadDrawing() {
+          let drawing = get(/databases/$(database)/documents/drawings/$(drawingId));
+          return (drawing.data.ownerId == request.auth.uid) ||
+                 (request.auth.uid in drawing.data.accessControl.users) ||
+                 (drawing.data.accessControl.publicLinkAccess in ['view', 'edit']);
+        }
+
+        allow read: if isAuthenticated() && canReadDrawing();
+        
+        // Allow create if user can read drawing AND senderId matches auth uid
+        allow create: if isAuthenticated() && canReadDrawing() && request.resource.data.senderId == request.auth.uid;
+        
+        // Allow delete only if user is the sender
+        allow delete: if isAuthenticated() && resource.data.senderId == request.auth.uid;
+      }
+
+      // Presence subcollection
+      match /presence/{userId} {
+        // Allow read if user can read drawing
+        function canReadDrawing() {
+          let drawing = get(/databases/$(database)/documents/drawings/$(drawingId));
+          return (drawing.data.ownerId == request.auth.uid) ||
+                 (request.auth.uid in drawing.data.accessControl.users) ||
+                 (drawing.data.accessControl.publicLinkAccess in ['view', 'edit']);
+        }
+
+        allow read: if isAuthenticated() && canReadDrawing();
+        
+        // Allow write if user is updating their own presence
+        allow write: if isAuthenticated() && request.auth.uid == userId;
+      }
     }
   }
 }
+
