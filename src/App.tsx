@@ -5,6 +5,7 @@ import { DashboardLayout } from "./layouts/DashboardLayout";
 import { Dashboard } from "./pages/Dashboard";
 import { Editor } from "./pages/Editor";
 import { Login } from "./pages/Login";
+import { Settings } from "./pages/Settings";
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, loading } = useAuth();
@@ -35,10 +36,13 @@ function App() {
               </PrivateRoute>
             }
           >
-            <Route index element={<Dashboard />} />
-            <Route path="folder/:folderId" element={<Dashboard />} />
-            <Route path="shared" element={<div>Shared with me (Coming Soon)</div>} />
-            <Route path="recent" element={<div>Recent Files (Coming Soon)</div>} />
+            <Route index element={<Dashboard view="recent" />} />
+            <Route path="recent" element={<Dashboard view="recent" />} />
+            <Route path="favorites" element={<Dashboard view="favorites" />} />
+            <Route path="trash" element={<Dashboard view="trash" />} />
+            <Route path="all" element={<Dashboard view="all" />} />
+            <Route path="folder/:folderId" element={<Dashboard view="folder" />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
           <Route

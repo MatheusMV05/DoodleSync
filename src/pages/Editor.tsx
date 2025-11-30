@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 // @ts-ignore
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
 import { ArrowLeft, Share2 } from "lucide-react";
@@ -40,7 +40,10 @@ export const Editor: React.FC = () => {
         setTitle(newTitle);
         if (fileId) {
             try {
-                await updateDoc(doc(db, "drawings", fileId), { name: newTitle });
+                await updateDoc(doc(db, "drawings", fileId), {
+                    name: newTitle,
+                    lastUpdated: serverTimestamp()
+                });
             } catch (error) {
                 console.error("Error updating title:", error);
             }

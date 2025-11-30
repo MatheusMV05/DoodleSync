@@ -21,10 +21,11 @@ export const DashboardLayout: React.FC = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
     const menuItems = [
-        { icon: LayoutGrid, label: "All Drawings", path: "/dashboard" },
-        { icon: Clock, label: "Recent", path: "/dashboard/recent" },
+        { icon: Clock, label: "Recent", path: "/dashboard" },
+        { icon: LayoutGrid, label: "All Drawings", path: "/dashboard/all" },
         { icon: Star, label: "Favorites", path: "/dashboard/favorites" },
         { icon: Trash2, label: "Trash", path: "/dashboard/trash" },
+        { icon: Settings, label: "Settings", path: "/dashboard/settings" },
     ];
 
     const handleLogout = async () => {
@@ -84,11 +85,6 @@ export const DashboardLayout: React.FC = () => {
             </nav>
 
             <div className="pt-4 mt-4 border-t border-white/5 space-y-1">
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                    <Settings size={20} />
-                    <span className="font-medium">Settings</span>
-                </button>
-
                 <div className="flex items-center gap-3 px-3 py-3 mt-2 rounded-xl bg-white/5 border border-white/5">
                     <img
                         src={currentUser?.photoURL || `https://ui-avatars.com/api/?name=${currentUser?.email}&background=random`}
