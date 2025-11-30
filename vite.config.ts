@@ -5,6 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   define: {
-    "process.env": {},
+    // Correção crítica para o Excalidraw rodar no Vite
+    "process.env.IS_PREACT": JSON.stringify("false"),
+    "process.env": {}, // Mantemos fallback seguro
+  },
+  // Otimização para evitar erros de dependência circular comuns no Excalidraw
+  optimizeDeps: {
+    include: ['@excalidraw/excalidraw']
   }
 })

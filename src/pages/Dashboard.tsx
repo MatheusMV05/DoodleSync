@@ -7,7 +7,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { Plus, Search, MoreVertical, Clock, File, Star, Trash2, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/Button";
-import { clsx } from "clsx";
 
 interface DashboardProps {
     view?: "recent" | "all" | "favorites" | "trash" | "folder";
@@ -192,16 +191,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
     return (
         <div className="space-y-8" onClick={() => setActiveMenu(null)}>
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-white mb-1">{getTitle()}</h1>
-                    <p className="text-gray-400">{getDescription()}</p>
+            <div className="flex flex-col gap-4">
+                {/* Breadcrumbs */}
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate('/dashboard')}>Home</span>
+                    <span>/</span>
+                    <span className="text-white font-medium capitalize">{view}</span>
                 </div>
-                {view !== "trash" && (
-                    <Button onClick={createDrawing} icon={<Plus size={20} />}>
-                        New Drawing
-                    </Button>
-                )}
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white mb-1">{getTitle()}</h1>
+                        <p className="text-gray-400">{getDescription()}</p>
+                    </div>
+                    {view !== "trash" && (
+                        <Button onClick={createDrawing} icon={<Plus size={20} />}>
+                            New Drawing
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Search */}
@@ -219,7 +227,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ view = "recent" }) => {
             {/* Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <AnimatePresence>
-                    {filteredDrawings.map((drawing, index) => (
+                    {filteredDrawings.map((drawing) => (
                         <motion.div
                             key={drawing.id}
                             layout
