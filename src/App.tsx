@@ -42,7 +42,7 @@ function App() {
           </Route>
 
           <Route
-            path="/file/:fileId"
+            path="/editor/:fileId"
             element={
               <PrivateRoute>
                 <Editor />

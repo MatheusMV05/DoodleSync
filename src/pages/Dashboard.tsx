@@ -1,72 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Plus, Folder as FolderIcon, File as FileIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 // @ts-ignore
-import { collection, addDoc, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
-
-interface FileItem {
-    id: string;
-    name: string;
-    type: "folder" | "file";
-    updatedAt: any;
-}
+import { Plus, Search, MoreVertical, Clock, File } from "lucide-react";
+import { motion } from "framer-motion";
+import { Button } from "../components/ui/Button";
 
 export const Dashboard: React.FC = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
-    const [items, setItems] = useState<FileItem[]>([]);
+    const [drawings, setDrawings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
-        fetchItems();
-    }, [currentUser]);
-
-    const fetchItems = async () => {
         if (!currentUser) return;
 
-        try {
-            // Fetch folders
-            const foldersQuery = query(
-                collection(db, "folders"),
-                where("ownerId", "==", currentUser.uid),
-                // orderBy("createdAt", "desc") // Requires index
-            );
+        const q = query(
+            collection(db, "drawings"),
+            where("ownerId", "==", currentUser.uid),
+            // orderBy("lastUpdated", "desc") // Requires index
+        );
 
-            // Fetch drawings
-            const drawingsQuery = query(
-                collection(db, "drawings"),
-                where("ownerId", "==", currentUser.uid),
-                // orderBy("lastUpdated", "desc") // Requires index
-            );
-
-            const [foldersSnap, drawingsSnap] = await Promise.all([
-                getDocs(foldersQuery),
-                getDocs(drawingsQuery)
-            ]);
-
-            const folders = foldersSnap.docs.map(doc => ({
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const docs = snapshot.docs.map(doc => ({
                 id: doc.id,
-                name: doc.data().name,
-                type: "folder" as const,
-                updatedAt: doc.data().createdAt
+                ...doc.data()
             }));
-
-            const drawings = drawingsSnap.docs.map(doc => ({
-                id: doc.id,
-                name: doc.data().name,
-                type: "file" as const,
-                updatedAt: doc.data().lastUpdated
-            }));
-
-            setItems([...folders, ...drawings]);
-        } catch (error) {
-            console.error("Error fetching items:", error);
-        } finally {
+            setDrawings(docs);
             setLoading(false);
-        }
-    };
+        });
+
+        return () => unsubscribe();
+    }, [currentUser]);
 
     const createDrawing = async () => {
         if (!currentUser) return;
@@ -75,96 +43,119 @@ export const Dashboard: React.FC = () => {
             const docRef = await addDoc(collection(db, "drawings"), {
                 name: "Untitled Drawing",
                 ownerId: currentUser.uid,
-                folderId: "root",
+                createdAt: serverTimestamp(),
+                lastUpdated: serverTimestamp(),
                 content: JSON.stringify({
                     elements: [],
                     appState: {
                         viewBackgroundColor: "#ffffff",
                         currentItemFontFamily: 1
-                    }
+                    },
+                    files: {}
                 }),
+                folderId: "root",
                 accessControl: {
                     publicLinkAccess: "none",
                     users: {
                         [currentUser.uid]: "owner"
                     }
-                },
-                createdAt: Date.now(),
-                lastUpdated: Date.now()
+                }
             });
-
-            navigate(`/file/${docRef.id}`);
+            navigate(`/editor/${docRef.id}`);
         } catch (error) {
             console.error("Error creating drawing:", error);
         }
     };
 
-    const createFolder = async () => {
-        const name = prompt("Folder Name:");
-        if (!name || !currentUser) return;
+    const filteredDrawings = drawings.filter(d =>
+        d.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-        try {
-            await addDoc(collection(db, "folders"), {
-                name,
-                ownerId: currentUser.uid,
-                parentId: "root",
-                createdAt: Date.now()
-            });
-            fetchItems();
-        } catch (error) {
-            console.error("Error creating folder:", error);
-        }
-    };
-
-    if (loading) return <div>Loading...</div>;
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
+            </div>
+        );
+    }
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-gray-900">My Files</h2>
-                <div className="flex gap-3">
-                    <button
-                        onClick={createFolder}
-                        className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                        <Plus size={18} />
-                        New Folder
-                    </button>
-                    <button
-                        onClick={createDrawing}
-                        className="flex items-center gap-2 px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-                    >
-                        <Plus size={18} />
-                        New Drawing
-                    </button>
+        <div className="space-y-8">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-1">My Drawings</h1>
+                    <p className="text-gray-400">Manage and organize your creative work</p>
                 </div>
+                <Button onClick={createDrawing} icon={<Plus size={20} />}>
+                    New Drawing
+                </Button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {items.map((item) => (
-                    <Link
-                        key={item.id}
-                        to={item.type === "folder" ? `/dashboard/folder/${item.id}` : `/file/${item.id}`}
-                        className="group relative bg-white p-6 rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all"
+            {/* Search and Filters */}
+            <div className="glass-panel p-2 rounded-xl flex items-center gap-2 max-w-md">
+                <Search className="text-gray-500 ml-2" size={20} />
+                <input
+                    type="text"
+                    placeholder="Search drawings..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 w-full"
+                />
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredDrawings.map((drawing, index) => (
+                    <motion.div
+                        key={drawing.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => navigate(`/editor/${drawing.id}`)}
+                        className="group relative aspect-[4/3] rounded-2xl bg-surface hover:bg-surface-hover border border-white/5 hover:border-violet-500/30 transition-all cursor-pointer overflow-hidden"
                     >
-                        <div className="flex items-start justify-between mb-4">
-                            <div className={`p-3 rounded-lg ${item.type === 'folder' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}`}>
-                                {item.type === "folder" ? <FolderIcon size={24} /> : <FileIcon size={24} />}
+                        {/* Preview Placeholder */}
+                        <div className="absolute inset-0 p-4 flex flex-col items-center justify-center bg-gradient-to-br from-white/5 to-transparent opacity-50 group-hover:opacity-100 transition-opacity">
+                            <File size={48} className="text-gray-600 group-hover:text-violet-400 transition-colors mb-4" />
+                        </div>
+
+                        {/* Content Overlay */}
+                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                            <div className="flex items-start justify-between gap-2">
+                                <div>
+                                    <h3 className="font-medium text-white truncate pr-2">{drawing.name}</h3>
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                                        <Clock size={12} />
+                                        <span>
+                                            {drawing.lastUpdated?.seconds
+                                                ? new Date(drawing.lastUpdated.seconds * 1000).toLocaleDateString()
+                                                : 'Just now'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <button className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100">
+                                    <MoreVertical size={16} />
+                                </button>
                             </div>
                         </div>
-                        <h3 className="font-medium text-gray-900 truncate mb-1">{item.name}</h3>
-                        <p className="text-xs text-gray-500">
-                            {new Date(item.updatedAt).toLocaleDateString()}
-                        </p>
-                    </Link>
+                    </motion.div>
                 ))}
-            </div>
 
-            {items.length === 0 && (
-                <div className="text-center py-12">
-                    <p className="text-gray-500">No files found. Create one to get started!</p>
-                </div>
-            )}
+                {/* Empty State */}
+                {filteredDrawings.length === 0 && (
+                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-surface border border-white/5 flex items-center justify-center mb-4">
+                            <File size={32} className="text-gray-600" />
+                        </div>
+                        <h3 className="text-lg font-medium text-white mb-1">No drawings found</h3>
+                        <p className="text-gray-400 mb-6">Create your first drawing to get started</p>
+                        <Button variant="secondary" onClick={createDrawing}>
+                            Create Drawing
+                        </Button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

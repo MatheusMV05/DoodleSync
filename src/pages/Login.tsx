@@ -1,50 +1,61 @@
 import React from "react";
-import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Button } from "../components/ui/Button";
 
 export const Login: React.FC = () => {
     const { signInWithGoogle, currentUser } = useAuth();
     const navigate = useNavigate();
 
-    if (currentUser) {
-        return <Navigate to="/dashboard" replace />;
-    }
+    React.useEffect(() => {
+        if (currentUser) {
+            navigate("/dashboard");
+        }
+    }, [currentUser, navigate]);
 
     const handleLogin = async () => {
         try {
             await signInWithGoogle();
-            navigate("/dashboard");
         } catch (error) {
-            console.error("Login failed:", error);
+            console.error("Failed to log in", error);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="flex justify-center">
-                    <span className="text-6xl">✎</span>
-                </div>
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    Sign in to DoodleSync
-                </h2>
-                <p className="mt-2 text-center text-sm text-gray-600">
-                    Your creative workspace for real-time collaboration
-                </p>
-            </div>
+        <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
+            {/* Background Effects */}
+            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-violet-600/20 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px]" />
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                    <div>
-                        <button
-                            onClick={handleLogin}
-                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                        >
-                            Sign in with Google
-                        </button>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="glass-panel p-8 rounded-2xl w-full max-w-md mx-4 relative z-10"
+            >
+                <div className="text-center mb-8">
+                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-violet-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/25 mb-6">
+                        <span className="text-3xl font-bold text-white">D</span>
                     </div>
+                    <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+                    <p className="text-gray-400">Sign in to continue to DoodleSync</p>
                 </div>
-            </div>
+
+                <div className="space-y-4">
+                    <Button
+                        onClick={handleLogin}
+                        className="w-full h-12 text-base"
+                        variant="primary"
+                    >
+                        Sign in with Google
+                    </Button>
+
+                    <p className="text-xs text-center text-gray-500 mt-6">
+                        By signing in, you agree to our Terms of Service and Privacy Policy
+                    </p>
+                </div>
+            </motion.div>
         </div>
     );
 };

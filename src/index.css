@@ -1,3 +1,32 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+    --color-background: #0a0a0f;
+    --color-surface: #13131f;
+    --color-surface-hover: #1c1c2e;
+    --color-primary: #7c3aed;
+    --color-primary-hover: #6d28d9;
+    --color-secondary: #3b82f6;
+    --color-accent: #8b5cf6;
+
+    --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+    body {
+        @apply bg-background text-white antialiased;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+}
+
+.glass-panel {
+    @apply bg-surface/60 backdrop-blur-xl border border-white/10;
+}
+
+.glass-button {
+    @apply bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300;
+}
+
+.gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-blue-400;
+}
